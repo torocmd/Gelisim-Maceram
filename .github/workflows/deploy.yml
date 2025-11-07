@@ -1,0 +1,60 @@
+# GitHub Pages için basit bir iş akışı
+name: Deploy to GitHub Pages
+
+on:
+  # 'main' dalına yapılan her 'push' işleminde çalışır
+  push:
+    branches: [ main ]
+  # Actions sekmesinden manuel olarak çalıştırmanıza olanak tanır
+  workflow_dispatch:
+
+# GITHUB_TOKEN'in 'pages:write' ve 'contents:read' izinlerine sahip olmasını sağlar
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Aynı anda yalnızca bir dağıtıma izin ver
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      # ÖNEMLİ: Bu adım, projenizi "build" eder ve dosyaları /dist klasörüne çıkarır.
+      # - name: Build
+      #  run: npm run build
+      
+      - name: Prepare artifact
+        run: |
+          mkdir -p ./dist
+          cp index.html ./dist/
+          cp index.tsx ./dist/
+          cp -r public/* ./dist/
+          cp readme.md ./dist/
+          cp metadata.json ./dist/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # /dist klasöründen yükle
+          path: './dist'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
