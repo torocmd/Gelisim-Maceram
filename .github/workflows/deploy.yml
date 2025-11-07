@@ -31,7 +31,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --ignore-scripts
 
       # ---- ÖNEMLİ DEĞİŞİKLİK BURADA ----
       # Build adımını etkinleştiriyoruz (yorumu kaldırdık).
